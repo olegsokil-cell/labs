@@ -1,0 +1,62 @@
+version: '3'
+
+services:
+  # Attacker Machine
+  attacker:
+    build:
+      context: .
+      dockerfile: Dockerfile.attacker
+    container_name: attacker
+    hostname: attacker
+    networks:
+      net:
+        ipv4_address: 10.9.0.17
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
+    volumes:
+      - ./attack-scripts:/attack
+    tty: true
+    stdin_open: true
+
+  # DNS Server (Local DNS server)
+  dns-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.dns
+    container_name: dns-server
+    hostname: dns-server
+    networks:
+      net:
+        ipv4_address: 10.9.0.16
+    volumes:
+      - ./dns-config:/etc/bind/zones
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+    tty: true
+    stdin_open: true
+
+  # User Machine
+  user-machine:
+    build:
+      context: .
+      dockerfile: Dockerfile.user
+    container_name: user-machine
+    hostname: user-machine
+    networks:
+      net:
+        ipv4_address: 10.9.0.18
+    dns:
+      - 10.9.0.16
+    tty: true
+    stdin_open: true
+    depends_on:
+      - dns-server
+
+networks:
+  net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.9.0.0/24

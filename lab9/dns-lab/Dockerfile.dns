@@ -1,0 +1,28 @@
+FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    bind9 \
+    bind9utils \
+    bind9-doc \
+    dnsutils \
+    net-tools \
+    iputils-ping \
+    vim \
+    nano \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy BIND configuration
+COPY dns-config/named.conf.options /etc/bind/named.conf.options
+COPY dns-config/named.conf.local /etc/bind/named.conf.local
+COPY dns-config/example.com.db /etc/bind/example.com.db
+
+# Fix permissions
+RUN chmod 644 /etc/bind/named.conf.options /etc/bind/named.conf.local /etc/bind/example.com.db && \
+    mkdir -p /var/cache/bind /var/run/named && \
+    chown -R bind:bind /var/cache/bind /var/run/named /etc/bind
+
+EXPOSE 53/udp 53/tcp
+
+CMD ["named", "-g", "-c", "/etc/bind/named.conf", "-u", "bind"]

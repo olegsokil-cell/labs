@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  x-terminal:
+    build: .
+    container_name: x-terminal
+    hostname: x-terminal
+    networks:
+      mitnick-net:
+        ipv4_address: 10.0.2.5
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    privileged: true
+    tty: true
+    stdin_open: true
+    command: >
+      bash -c "
+        echo '10.0.2.6' > /root/.rhosts &&
+        chmod 644 /root/.rhosts &&
+        service openbsd-inetd start &&
+        echo '[+] X-Terminal ready' &&
+        tail -f /dev/null
+      "
+
+  trusted-server:
+    build: .
+    container_name: trusted-server
+    hostname: trusted-server
+    networks:
+      mitnick-net:
+        ipv4_address: 10.0.2.6
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    privileged: true
+    tty: true
+    stdin_open: true
+    command: >
+      bash -c "
+        service openbsd-inetd start &&
+        echo '[+] Trusted Server ready' &&
+        tail -f /dev/null
+      "
+
+  attacker:
+    build: .
+    container_name: attacker
+    hostname: attacker
+    networks:
+      mitnick-net:
+        ipv4_address: 10.0.2.7
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    privileged: true
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./attack:/attack
+    command: >
+      bash -c "
+        echo '[+] Attacker ready' &&
+        tail -f /dev/null
+      "
+
+networks:
+  mitnick-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.2.0/24
+          gateway: 10.0.2.1

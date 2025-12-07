@@ -1,0 +1,10 @@
+# Docker volumes
+*.log
+dump.db
+
+# macOS
+.DS_Store
+
+# Backup files
+*~
+*.bak

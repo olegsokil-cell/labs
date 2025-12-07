@@ -1,0 +1,29 @@
+options {
+    directory "/var/cache/bind";
+
+    // Allow queries from any host
+    allow-query { any; };
+
+    // Disable DNSSEC validation for lab purposes
+    dnssec-validation no;
+
+    // Enable recursion
+    recursion yes;
+    allow-recursion { any; };
+
+    // Disable query source port randomization (makes attacks easier for lab)
+    query-source port 33333;
+
+    // Listen on all interfaces
+    listen-on { any; };
+    listen-on-v6 { none; };
+
+    // Dump cache file location
+    dump-file "/var/cache/bind/dump.db";
+
+    // Forward to real DNS for domains we don't host
+    forwarders {
+        8.8.8.8;
+        1.1.1.1;
+    };
+};
